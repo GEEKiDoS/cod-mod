@@ -11,6 +11,8 @@
 
 #include "StdInc.h"
 
+#include <d3d9.h>
+
 // function definitions
 extern "C"
 {

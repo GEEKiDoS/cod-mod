@@ -75,7 +75,7 @@ void SELoadLanguageHookStub()
 	char* language = enumList[modLang->current.integer];
 
 	if(LoadStrFiles(language)==0)
-		LoadStrFiles("english");//load english str files if there aren't any of selected language
+		LoadStrFiles("chinese");//load english str files if there aren't any of selected language
 }
 
 CallHook SELoadLanguageHook;
@@ -106,7 +106,7 @@ void loadLanguage()
 	SELoadLanguageHookStub();
 }
 
-char* ModLanguageEnum[] = { "english", "french", "german", "italian", "spanish", "english", "russian", "polish",  0 };
+char* ModLanguageEnum[] = { "english", "french", "german", "italian", "spanish", "english", "russian", "polish",  "korean", "taiwanese", "japanese", "chinese" };
 
 void replaceLocalizedStrings()
 {

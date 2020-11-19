@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <direct.h>
 #include <io.h>
+#include <stack>
 
 dvar_t* specialops;
 
@@ -39,9 +40,9 @@ char returnPath[MAX_PATH];
 
 char* addAlterZones(char* zone)
 {
-	if(GetFileAttributes(va( "zone\\alter\\%s", zone)) != INVALID_FILE_ATTRIBUTES)
+	if(GetFileAttributes(va( "zone\\custom\\%s", zone)) != INVALID_FILE_ATTRIBUTES)
 	{
-		strcpy(returnPath, "zone\\alter\\");
+		strcpy(returnPath, "zone\\custom\\");
 	}
 	else if(GetFileAttributes(va("zone\\dlc\\%s", zone)) != INVALID_FILE_ATTRIBUTES)
 	{ 
@@ -53,23 +54,6 @@ char* addAlterZones(char* zone)
 	}
 
 	return returnPath;
-}
-
-void __cdecl loadTeamFile(XZoneInfo* data, int count, int unknown)
-{
-	XZoneInfo* newData = (XZoneInfo*)malloc_n(sizeof(XZoneInfo) * (count + 1));
-	memcpy(newData, data, sizeof(XZoneInfo) * count);
-
-	// Still bugged. probably need to compile an own fastfile
-	//newData[count].name = "team_tf141";
-	//newData[count].type1 = data->type1;
-	//newData[count++].type2 = data->type2;
-
-	uncutGame(newData);
-
-	_allowZoneChange = true;
-
-	DB_LoadXAssets(newData, count, unknown);
 }
 
 static DWORD gameWorldSP;
@@ -171,6 +155,164 @@ dvar_t* YUNO4K(const char* name, char** enumValues, int default, int flags, cons
 	return Dvar_RegisterEnum(name, newEnum, default, flags, description);
 }
 
+bool ListFiles(string path, string mask, vector<string>& files) {
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+	WIN32_FIND_DATA ffd;
+	string spec;
+	std::stack<string> directories;
+
+	directories.push(path);
+	files.clear();
+
+	while (!directories.empty()) {
+		path = directories.top();
+		spec = path + "\\" + mask;
+		directories.pop();
+
+		hFind = FindFirstFile(spec.c_str(), &ffd);
+		if (hFind == INVALID_HANDLE_VALUE) {
+			return false;
+		}
+
+		do {
+			if (strcmp(ffd.cFileName, ".") != 0 &&
+				strcmp(ffd.cFileName, "..") != 0) {
+				if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+					directories.push(path + "\\" + ffd.cFileName);
+				}
+				else {
+					files.push_back(path + "\\" + ffd.cFileName);
+				}
+			}
+		} while (FindNextFile(hFind, &ffd) != 0);
+
+		if (GetLastError() != ERROR_NO_MORE_FILES) {
+			FindClose(hFind);
+			return false;
+		}
+
+		FindClose(hFind);
+		hFind = INVALID_HANDLE_VALUE;
+	}
+
+	return true;
+}
+
+void Load_XSurfaceArrayFix(int shouldLoad, int count)
+{
+	// read the actual count from the varXModelSurfs ptr
+	auto surface = *reinterpret_cast<XModelSurfs**>(0x9DB05C);
+
+	// call original read function with the correct count
+	return ((void(*)(int, int))0x44C880)(shouldLoad, surface->numSurfaces);
+}
+
+void LoadCustomZones(XZoneInfo* data, int count, int sync)
+{
+	std::vector<XZoneInfo> infos;
+
+	for (int i = 0; i < count; i++)
+		infos.push_back(data[i]);
+
+	std::vector<string> files;
+
+	if (ListFiles("zone\\custom", "*.ff", files))
+	{
+		for (auto &file : files)
+		{
+			std::string fastfileName(file.substr(12, file.length() - 15));
+
+			XZoneInfo info = 
+			{
+				strdup(fastfileName.c_str()),
+				1,
+				0
+			};
+
+			infos.insert(infos.begin(), info);
+
+			//infos.push_back();
+		}
+	}
+
+	return DB_LoadXAssets(infos.data(), infos.size(), sync);
+}
+
+void LoadGfxPatch(XZoneInfo* data, int count, int sync)
+{
+	std::vector<XZoneInfo> infos;
+
+	for (int i = 0; i < count; i++)
+		infos.push_back(data[i]);
+
+	if (GetFileAttributesA("zone\\english\\gfx_patch.ff") != INVALID_FILE_ATTRIBUTES)
+	{
+		XZoneInfo info =
+		{
+			"gfx_patch",
+			0,
+			0
+		};
+
+		infos.insert(infos.begin(), info);
+	}
+
+	return DB_LoadXAssets(infos.data(), infos.size(), sync);
+}
+
+void __cdecl loadTeamFile(XZoneInfo* data, int count, int unknown)
+{
+	XZoneInfo* newData = (XZoneInfo*)malloc_n(sizeof(XZoneInfo) * (count + 1));
+	memcpy(newData, data, sizeof(XZoneInfo) * count);
+
+	// Still bugged. probably need to compile an own fastfile
+	newData[count].name = "custom";
+	newData[count].type1 = data->type1;
+	newData[count++].type2 = data->type2;
+
+	uncutGame(newData);
+
+	_allowZoneChange = true;
+
+	DB_LoadXAssets(newData, count, unknown);
+}
+
+void hkCom_Error(const char* message, ...)
+{
+	printf(message);
+}
+
+
+
+void __declspec(naked) R_GetCharacterGlyph_UsercallHk()
+{
+	__asm 
+	{
+
+	}
+}
+
+
+DWORD decodeLetterOrigPos = 0x461B85;
+
+uint16_t decodedcrap[2] = { 0, 0 };
+char* decodeedstring = (char*)decodedcrap;
+
+uint16_t __cdecl SEH_DecodeLetterStub(uint8_t firstChar, uint8_t secondChar, int* usedCount, int* pbIsTrailingPunctuation)
+{
+	uint16_t result = ((uint16_t(__cdecl*)(uint8_t, uint8_t, int *, int *))0x461B80)(firstChar, secondChar, usedCount, pbIsTrailingPunctuation);
+	
+	decodedcrap[0] = result;
+
+	printf("%s", decodeedstring);
+
+	return result;
+}
+
+static char defaultFont[32];
+static char hudFont[32];
+static char objectiveFont[32];
+
 void PatchMW2_Load()
 {
 	if(version == 159)
@@ -180,12 +322,24 @@ void PatchMW2_Load()
 
 		// Ignore 'Disc read error.'
 		nop(0x4B7335, 2);
-		//*(BYTE*)0x4B7356 = 0xEB;
+		*(BYTE*)0x4B7356 = 0xEB;
 		//*(BYTE*)0x413629 = 0xEB;
 		//*(BYTE*)0x581227 = 0xEB;
 		*(BYTE*)0x4256B9 = 0xEB;
 
+		call(0x45EE95, Load_XSurfaceArrayFix, PATCH_CALL);
+		call(0x50B637, LoadCustomZones, PATCH_CALL);
+		call(0x50B595, LoadGfxPatch, PATCH_CALL);
+
+		//nop(0x41CCBC, 5);
+
+		//call(0x41611A, SEH_DecodeLetterStub, PATCH_CALL);
+		//call(0x508BF6, SEH_DecodeLetterStub, PATCH_CALL);
+		//call(0x577623, SEH_DecodeLetterStub, PATCH_CALL);
+
 		gameWorldSP = (*(DWORD*)0x4B0921) - 4;
+
+		//call(0x40BFF0, hkCom_Error, PATCH_JUMP);
 	}
 	else if(version == 184)
 	{
@@ -205,8 +359,9 @@ void PatchMW2_Load()
 	gameWorldMP = (DWORD)ReallocateAssetPool(ASSET_TYPE_GAME_MAP_MP, 1);
 
 	call(getBSPNameHookLoc, GetBSPNameHookFunc, PATCH_CALL);
-	call(ffLoadHook1Loc, loadTeamFile, PATCH_CALL);
+	//call(ffLoadHook1Loc, loadTeamFile, PATCH_CALL);
 	call(zoneLoadHookLoc, addAlterZones, PATCH_CALL);
+
 	ReallocXAssetEntries();
 
 	// Allow campaign intro to be skipped :P
@@ -214,4 +369,19 @@ void PatchMW2_Load()
 
 	// 4k stuff causes problems
 	//call((version == 159 ? 0x50BBD2 : 0x50B302), YUNO4K, PATCH_CALL);
+
+	//GetPrivateProfileStringA("CODMOD", "default", "fonts/default", defaultFont, 1000, "./iw4sp.ini");
+	//GetPrivateProfileStringA("CODMOD", "hud", "fonts/hud", hudFont, 1000, "./iw4sp.ini");
+	//GetPrivateProfileStringA("CODMOD", "objective", "fonts/objective", objectiveFont, 1000, "./iw4sp.ini");
+	//
+	//*(char**)0x620FAD = defaultFont;
+	//*(char**)0x620FBE = defaultFont;
+	//*(char**)0x620FE0 = defaultFont;
+	//*(char**)0x620FF4 = defaultFont;
+	//*(char**)0x621005 = defaultFont;
+	//
+	//*(char**)0x621016 = objectiveFont;
+	//
+	//*(char**)0x621027 = hudFont;
+	//*(char**)0x621038 = hudFont;
 }

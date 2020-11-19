@@ -56,6 +56,7 @@ void define159Stuff()
 
 	G_GiveAchievement = (G_GiveAchievement_t)0x4E9420;
 
+	//Image_LoadBitmap = (Image_LoadBitmap_t)0x544AA0;
 	Image_LoadFromFileWithReader = (Image_LoadFromFileWithReader_t)0x544EF0;
 	Image_Release = (Image_Release_t)0x520BC0;
 

@@ -50,5 +50,5 @@ snd_alias_list_t* FindSoundAliasHookFunc(assetType_t type, const char* name)
 
 void PatchMW2_MusicalTalent()
 {
-	call(findSoundAliasHookLoc, FindSoundAliasHookFunc, PATCH_CALL);
+	//call(findSoundAliasHookLoc, FindSoundAliasHookFunc, PATCH_CALL);
 }

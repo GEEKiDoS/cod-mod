@@ -73,10 +73,23 @@ void Main_SetSafeInit()
 	}
 }
 
+void CreateDebugConsole()
+{
+	AllocConsole();
+
+	auto ret = freopen("CONIN$", "r", stdin);
+	ret = freopen("CONOUT$", "w", stdout);
+	ret = freopen("CONOUT$", "w", stderr);
+
+	SetConsoleCP(CP_ACP);
+	SetConsoleOutputCP(CP_ACP);
+}
+
 BOOL __stdcall DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
+		//CreateDebugConsole();
 		Main_SetSafeInit();
 	}
 

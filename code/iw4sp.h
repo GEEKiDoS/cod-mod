@@ -138,25 +138,58 @@ typedef struct cmd_function_s
 	char pad[24];
 } cmd_function_t;
 
+struct GfxImageFileHeader
+{
+	char tag[3];
+	char version;
+	unsigned int flags;
+	char format;
+	char unused;
+	__int16 dimensions[3];
+	int fileSizeForPicmip[4];
+};
+
+struct GfxImageLoadDef // actually a IDirect3DTexture* but this is easier
+{
+	char mipLevels;
+	char flags;
+	short dimensions[3];
+	int format; // usually the compression Magic
+	int dataSize; // set to zero to load from IWD
+	char* texture; // texture
+};
+
+class IDirect3DBaseTexture9;
+class IDirect3DTexture9;
+class IDirect3DVolumeTexture9;
+class IDirect3DCubeTexture9;
+
+union GfxTexture
+{
+	IDirect3DBaseTexture9* basemap;
+	IDirect3DTexture9* map;
+	IDirect3DVolumeTexture9* volmap;
+	IDirect3DCubeTexture9* cubemap;
+	GfxImageLoadDef* loadDef;
+};
+
 // material stuff
 struct GfxImage
 {
-        char* texture;
-        char unknown2;
-        char a3;
-        char a2;
-        char unknown3;
-        char unknown4;
-        char unknown5;
-        char unknown6;
-        char a4;
-        int dataLength1;
-        int dataLength2;
-        short height;
-		short width;
-        short depth;
-        short unknown8;
-        char* name;
+	GfxTexture texture;
+	char mapType; // 5 is cube, 4 is 3d, 3 is 2d
+	char semantic;
+	char category;
+	char flags;
+	int picmap;
+	int dataLen1;
+	int dataLen2;
+	short height;
+	short width;
+	short depth;
+	bool loaded;
+	char pad;
+	char* name;
 };
 
 struct MaterialTextureDef
@@ -382,6 +415,7 @@ typedef struct
 	int maxClients;
 	char map[128];
 } svstatus_t;
+
 
 struct XZoneInfo {
 	const char* name;
@@ -1328,6 +1362,9 @@ extern Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader;
 
 typedef void (__cdecl * Image_Release_t)(GfxImage* image);
 extern Image_Release_t Image_Release;
+
+typedef void(__cdecl* Image_LoadBitmap_t)(GfxImage* image, GfxImageFileHeader* fileHeader, char* data, int format, int bytesPerPixel);
+extern Image_LoadBitmap_t Image_LoadBitmap;
 
 typedef FS_ListFiles_t Sys_ListFiles_t;
 extern Sys_ListFiles_t Sys_ListFiles;

@@ -37,5 +37,5 @@ void __declspec(naked) printVersionHook()
 
 void PatchMW2_ConsoleStart()
 {
-	call(printVersionHookLoc, printVersionHook, PATCH_CALL);
+	//call(printVersionHookLoc, printVersionHook, PATCH_CALL);
 }

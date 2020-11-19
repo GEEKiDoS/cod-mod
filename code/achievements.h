@@ -289,6 +289,6 @@ void buildAchievementList()
 	// Extra ;)
 	achievements[50].name = "Is That All You Got?";
 	achievements[50].code = "PLATINUM";
-	achievements[50].description = "Earn all available achievements for Modern Warfare® 2."; // Probably '®' will encounter encoding errors...
+	achievements[50].description = "Earn all available achievements for Modern Warfare?2."; // Probably '? will encounter encoding errors...
 	achievements[50].difficulty = platinum;
 }
