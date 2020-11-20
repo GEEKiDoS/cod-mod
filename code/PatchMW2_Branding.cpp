@@ -154,7 +154,7 @@ void PatchColorTable()
 
 	if(NEW_COLORS_VALUE && NEW_COLORS_VALUE != lastValue)
 	{
-		// Apply NTA's W² colors :3 (slightly modified though^^)
+		// Apply NTA's W?colors :3 (slightly modified though^^)
 		color_table[1] = RGB(255, 49, 49);
 		color_table[2] = RGB(134, 192, 0);
 		color_table[3] = RGB(255, 173, 34);
@@ -204,12 +204,12 @@ void PatchMW2_Branding()
 	else
 	{
 		cg_drawVersion = Dvar_RegisterBool("cg_drawVersion", 1, DVAR_FLAG_SAVED, "Draw brandstring version.");
-		cg_newColors = Dvar_RegisterBool("cg_newColors", true, DVAR_FLAG_SAVED, "Use Warfare² color code style.");
+		cg_newColors = Dvar_RegisterBool("cg_newColors", true, DVAR_FLAG_SAVED, "Use Warfare?color code style.");
 	}
 
 
-	drawDevStuffHook.initialize(drawDevStuffHookLoc, DrawDevStuffHookStub);
-	drawDevStuffHook.installHook();
+	// drawDevStuffHook.initialize(drawDevStuffHookLoc, DrawDevStuffHookStub);
+	// drawDevStuffHook.installHook();
 
 	// Find color table
 	color_table = (DWORD*)FindPattern(0x400000, 0x800000, (PBYTE)"\x00\x00\x00\xFF\xFF\x5C\x5C\xFF\x00\xFF\x00\xFF\xFF\xFF\x00\xFF\x00\x00\xFF\xFF\x00\xFF\xFF\xFF\xFF\x5C\xFF\xFF\xFF\xFF\xFF\xFF", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");

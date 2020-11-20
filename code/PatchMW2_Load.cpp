@@ -14,10 +14,9 @@
 #include <sys/stat.h>
 #include <direct.h>
 #include <io.h>
+#include <stack>
 
 dvar_t* specialops;
-
-void* ReallocateAssetPool(int type, unsigned int newSize);
 
 // Allow civilians to be killed in 'No Russian' if game is censored.
 void uncutGame(XZoneInfo* data)
@@ -37,8 +36,87 @@ void cinematic_f()
 
 char returnPath[MAX_PATH];
 
+bool ListFiles(string path, string mask, vector<string>& files) {
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+	WIN32_FIND_DATA ffd;
+	string spec;
+	std::stack<string> directories;
+
+	directories.push(path);
+	files.clear();
+
+	while (!directories.empty()) {
+		path = directories.top();
+		spec = path + "\\" + mask;
+		directories.pop();
+
+		hFind = FindFirstFile(spec.c_str(), &ffd);
+		if (hFind == INVALID_HANDLE_VALUE) {
+			return false;
+		}
+
+		do {
+			if (strcmp(ffd.cFileName, ".") != 0 &&
+				strcmp(ffd.cFileName, "..") != 0) {
+				if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+					directories.push(path + "\\" + ffd.cFileName);
+				}
+				else {
+					files.push_back(path + "\\" + ffd.cFileName);
+				}
+			}
+		} while (FindNextFile(hFind, &ffd) != 0);
+
+		if (GetLastError() != ERROR_NO_MORE_FILES) {
+			FindClose(hFind);
+			return false;
+		}
+
+		FindClose(hFind);
+		hFind = INVALID_HANDLE_VALUE;
+	}
+
+	return true;
+}
+
+void LoadCustomZones(XZoneInfo* data, int count, int sync)
+{
+	std::vector<XZoneInfo> infos;
+
+	for (int i = 0; i < count; i++)
+		infos.push_back(data[i]);
+
+	std::vector<string> files;
+
+	if (ListFiles("zone\\custom", "*.ff", files))
+	{
+		for (auto& file : files)
+		{
+			std::string fastfileName(file.substr(12, file.length() - 15));
+			fastfileName = "..\\custom\\" + fastfileName;
+
+			XZoneInfo info =
+			{
+				strdup(fastfileName.c_str()),
+				1,
+				0
+			};
+
+			infos.insert(infos.begin(), info);
+
+			//infos.push_back();
+		}
+	}
+
+	return DB_LoadXAssets(infos.data(), infos.size(), sync);
+}	
+
 char* addAlterZones(char* zone)
 {
+	if (GetFileAttributes(va("zone\\custom\\%s", zone)) != INVALID_FILE_ATTRIBUTES)
+	{
+		strcpy(returnPath, "zone\\custom\\");
+	}
 	if(GetFileAttributes(va( "zone\\alter\\%s", zone)) != INVALID_FILE_ATTRIBUTES)
 	{
 		strcpy(returnPath, "zone\\alter\\");
@@ -171,6 +249,18 @@ dvar_t* YUNO4K(const char* name, char** enumValues, int default, int flags, cons
 	return Dvar_RegisterEnum(name, newEnum, default, flags, description);
 }
 
+
+void Load_XSurfaceArrayFix(int shouldLoad, int count)
+{
+	// read the actual count from the varXModelSurfs ptr
+	auto surface = *reinterpret_cast<XModelSurfs**>(0x9DB05C);
+
+	// call original read function with the correct count
+	return ((void(*)(int, int))0x44C880)(shouldLoad, surface->numSurfaces);
+}
+
+void* ReallocateAssetPool(assetType_t type, unsigned int newSize);
+
 void PatchMW2_Load()
 {
 	if(version == 159)
@@ -180,10 +270,13 @@ void PatchMW2_Load()
 
 		// Ignore 'Disc read error.'
 		nop(0x4B7335, 2);
-		//*(BYTE*)0x4B7356 = 0xEB;
+		*(BYTE*)0x4B7356 = 0xEB;
 		//*(BYTE*)0x413629 = 0xEB;
 		//*(BYTE*)0x581227 = 0xEB;
 		*(BYTE*)0x4256B9 = 0xEB;
+
+		call(0x50B637, LoadCustomZones, PATCH_CALL);
+		call(0x45EE95, Load_XSurfaceArrayFix, PATCH_CALL);
 
 		gameWorldSP = (*(DWORD*)0x4B0921) - 4;
 	}

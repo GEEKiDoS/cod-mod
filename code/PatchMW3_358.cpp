@@ -11,7 +11,6 @@
 
 #include "StdInc.h"
 
-void* ReallocateAssetPool(int type, unsigned int newSize);
 dvar_t* Dvar_RegisterBool_MW3(const char* name, int default, int flags);
 void _strncpy_hook(char* name_buffer, char* no_name, size_t size);
 ISteamFriends* __cdecl SteamFriends();
@@ -173,7 +172,7 @@ void PatchMW3_358()
 	memset((void*)0x5EE851, 0x90, 5);
 
 	// Fix leaderboarddefinition stuff
-	ReallocateAssetPool(41, 228);
+	// ReallocateAssetPool(41, 228);
 
 	// m2demo ;)
 	*(DWORD*)0x60E281 = (DWORD)BASEGAME;

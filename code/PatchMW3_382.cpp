@@ -82,43 +82,43 @@ void patchDevmap()
 typedef int (__cdecl * DB_GetXAssetSizeHandler_t)();
 DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x850238;
 
-void** DB_XAssetPool = (void**)0x8506A8;
-unsigned int* g_poolSize = (unsigned int*)0x8503C8;
-
-void* ReallocateAssetPool(int type, unsigned int newSize)
-{
-	// Wow need to cleanup all this...
-	if(version == 358)
-	{
-		DB_XAssetPool = (void**)0x84F668;
-		g_poolSize = (unsigned int*)0x84F388;
-		DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x84F1F8;
-	}
-	else if(version == 159)
-	{
-		DB_XAssetPool = (void**)0x7337F8;
-		g_poolSize = (unsigned int*)0x733510;
-		DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x733408;
-	}
-	else if(version == 177)
-	{
-		DB_XAssetPool = (void**)0x7998A8;
-		g_poolSize = (unsigned int*)0x7995E8;
-		DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x799488;
-	}
-	else if(version == 184)
-	{
-		DB_XAssetPool = (void**)0x7307F8;
-		g_poolSize = (unsigned int*)0x730510;
-		DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x730408;
-	}
-
-	int elSize = DB_GetXAssetSizeHandlers[type]();
-	void* poolEntry = malloc(newSize * elSize);
-	DB_XAssetPool[type] = poolEntry;
-	g_poolSize[type] = newSize;
-	return poolEntry;
-}
+//void** DB_XAssetPool = (void**)0x8506A8;
+//unsigned int* g_poolSize = (unsigned int*)0x8503C8;
+//
+//void* ReallocateAssetPool(int type, unsigned int newSize)
+//{
+//	// Wow need to cleanup all this...
+//	if(version == 358)
+//	{
+//		DB_XAssetPool = (void**)0x84F668;
+//		g_poolSize = (unsigned int*)0x84F388;
+//		DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x84F1F8;
+//	}
+//	else if(version == 159)
+//	{
+//		DB_XAssetPool = (void**)0x7337F8;
+//		g_poolSize = (unsigned int*)0x733510;
+//		DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x733408;
+//	}
+//	else if(version == 177)
+//	{
+//		DB_XAssetPool = (void**)0x7998A8;
+//		g_poolSize = (unsigned int*)0x7995E8;
+//		DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x799488;
+//	}
+//	else if(version == 184)
+//	{
+//		DB_XAssetPool = (void**)0x7307F8;
+//		g_poolSize = (unsigned int*)0x730510;
+//		DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x730408;
+//	}
+//
+//	int elSize = DB_GetXAssetSizeHandlers[type]();
+//	void* poolEntry = malloc(newSize * elSize);
+//	DB_XAssetPool[type] = poolEntry;
+//	g_poolSize[type] = newSize;
+//	return poolEntry;
+//}
 
 void printHelloWorld(int type);
 void __cdecl SteamAPI_RunCallbacks();
@@ -320,7 +320,7 @@ void PatchMW3_382()
 	*(DWORD*)0x65F6AF = (DWORD)"COD-MOD: Game";
 
 	// Fix leaderboarddefinition stuff
-	ReallocateAssetPool(41, 228);
+	// ReallocateAssetPool(41, 228);
 
 	// Enable chaos
 	Dvar_RegisterBool_MW3("content_allow_chaos_mode", 1, 4);

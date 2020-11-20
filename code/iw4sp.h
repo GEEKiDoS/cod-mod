@@ -1329,6 +1329,9 @@ extern Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader;
 typedef void (__cdecl * Image_Release_t)(GfxImage* image);
 extern Image_Release_t Image_Release;
 
+typedef int(__cdecl* DB_GetXAssetTypeSize_t)(assetType_t type);
+extern DB_GetXAssetTypeSize_t DB_GetXAssetTypeSize;
+
 typedef FS_ListFiles_t Sys_ListFiles_t;
 extern Sys_ListFiles_t Sys_ListFiles;
 typedef FS_FreeFileList_t Sys_FreeFileList_t;

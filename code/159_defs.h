@@ -4,6 +4,7 @@ void define159Stuff()
 {
 	version = 159;
 
+	DB_GetXAssetTypeSize = (DB_GetXAssetTypeSize_t)0x40F720;
 
 	R_RegisterFont = (R_RegisterFont_t)0x508910;
 	R_AddCmdDrawText = (R_AddCmdDrawText_t)0x50E7A0;
@@ -98,7 +99,6 @@ void define159Stuff()
 	SteamFriendsLoc = 0x694528;
 	SteamUserStatsLoc = 0x69455C;
 	SteamUserStatsInstanceLoc = 0x1BEE1C0;
-
 	sourceFiles = (source_t **)0x7440E8;
 	menuParseKeywordHash = (keywordHash_t **)0x1933DB0;
 

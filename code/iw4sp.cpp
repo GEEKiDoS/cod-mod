@@ -96,6 +96,7 @@ extern "C"
 	// other stuff
 	CommandCB_t Cbuf_AddServerText_f = (CommandCB_t)0x4BB9B0;
 
+	DB_GetXAssetTypeSize_t DB_GetXAssetTypeSize;
 	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
 	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
 	R_TextWidth_t R_TextWidth = (R_TextWidth_t)0;

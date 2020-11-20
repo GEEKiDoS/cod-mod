@@ -112,6 +112,9 @@
     <ClCompile Include="SDLLP.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="PatchMW2_D3D9Ex.cpp">
+      <Filter>MW2 Patches</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Hooking.h">
