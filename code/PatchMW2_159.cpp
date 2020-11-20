@@ -12,6 +12,7 @@
 #include "StdInc.h"
 #include "159_defs.h"
 #include <shellapi.h>
+#include <time.h>
 #include <dbghelp.h>
 
 void PatchMW2_ClientConsole();
@@ -145,6 +146,28 @@ void startMultiplayer_hook()
 	Cbuf_AddText(0, "quit\n");
 }
 
+__int64* slots = (__int64*)0x19FF508;
+
+__int64 get_xuid_stub(int a1)
+{
+	static __int64 rand_xuid = 0;
+
+	if (a1 == 0)
+	{
+		if (rand_xuid == 0)
+		{
+			srand(time(0));
+			rand_xuid = abs(rand()) | 0x1101000000000000;
+
+			slots[0] = rand_xuid;
+		}
+
+		return rand_xuid;
+	}
+	
+	return slots[13 * a1];
+}
+
 void PatchMW2_159()
 {
 	define159Stuff();
@@ -268,6 +291,8 @@ void PatchMW2_159()
 	call(0x420858, TryLoadRawfile, PATCH_CALL);
 
 	call(0x401760, strcmp_stub, PATCH_JUMP);
+
+	call(0x4E3710, get_xuid_stub, PATCH_JUMP);
 
 	if (GetFileAttributesA("zone\\chinese\\gfx_patch.ff") != INVALID_FILE_ATTRIBUTES)
 	{
