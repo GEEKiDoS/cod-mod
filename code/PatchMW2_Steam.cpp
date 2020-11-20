@@ -121,38 +121,39 @@ void steamPatches_382()
 
 void loadGameOverlay()
 {
-	try
-	{
-		std::string m_steamDir;
-		HKEY hRegKey;
-
-		if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
-		{
-			char pchSteamDir[MAX_PATH];
-			DWORD dwLength = sizeof(pchSteamDir);
-			RegQueryValueExA(hRegKey, "InstallPath", NULL, NULL, (BYTE*)pchSteamDir, &dwLength);
-			RegCloseKey(hRegKey);
-
-			m_steamDir = pchSteamDir;
-		}
-
-		Com_Printf(0, "Loading %s\\gameoverlayrenderer.dll...\n", m_steamDir.c_str());
-		HMODULE overlay = LoadLibrary(va("%s\\gameoverlayrenderer.dll", m_steamDir.c_str()));
-
-		if (overlay)
-		{
-			FARPROC _SetNotificationPosition = GetProcAddress(overlay, "SetNotificationPosition");
-
-			if (_SetNotificationPosition)
-			{
-				((void(*)(uint32_t))_SetNotificationPosition)(1);
-			}
-		}
-	}
-	catch (int e)
-	{
-		Com_Printf(0, "Failed to inject Steam's gameoverlay: %d", e);
-	}
+	// nope we dont
+	// try
+	// {
+	// 	std::string m_steamDir;
+	// 	HKEY hRegKey;
+	// 
+	// 	if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
+	// 	{
+	// 		char pchSteamDir[MAX_PATH];
+	// 		DWORD dwLength = sizeof(pchSteamDir);
+	// 		RegQueryValueExA(hRegKey, "InstallPath", NULL, NULL, (BYTE*)pchSteamDir, &dwLength);
+	// 		RegCloseKey(hRegKey);
+	// 
+	// 		m_steamDir = pchSteamDir;
+	// 	}
+	// 
+	// 	Com_Printf(0, "Loading %s\\gameoverlayrenderer.dll...\n", m_steamDir.c_str());
+	// 	HMODULE overlay = LoadLibrary(va("%s\\gameoverlayrenderer.dll", m_steamDir.c_str()));
+	// 
+	// 	if (overlay)
+	// 	{
+	// 		FARPROC _SetNotificationPosition = GetProcAddress(overlay, "SetNotificationPosition");
+	// 
+	// 		if (_SetNotificationPosition)
+	// 		{
+	// 			((void(*)(uint32_t))_SetNotificationPosition)(1);
+	// 		}
+	// 	}
+	// }
+	// catch (int e)
+	// {
+	// 	Com_Printf(0, "Failed to inject Steam's gameoverlay: %d", e);
+	// }
 }
 
 void initializeSteamPatch()

@@ -11,6 +11,7 @@
 
 #include "StdInc.h"
 #include "159_defs.h"
+#include <shellapi.h>
 #include <dbghelp.h>
 
 void PatchMW2_ClientConsole();
@@ -108,6 +109,42 @@ char* __cdecl TryLoadRawfile(int unk1, char* fileName)
 	return ((char* (__cdecl*)(int, char*))0x4173C0)(unk1, fileName);
 }
 
+// I don't know why game try to pass a unreadable 
+// address to strcmp, and I dont want to know why, 
+// atleast this fixes that shit
+bool check_address_is_r(void* addr)
+{
+	MEMORY_BASIC_INFORMATION mbi;
+	if (VirtualQuery(addr, &mbi, sizeof(MEMORY_BASIC_INFORMATION)) == 0)
+		return false;
+
+	if (mbi.State != MEM_COMMIT)
+		return false;
+
+	if (mbi.Protect == PAGE_NOACCESS || mbi.Protect == PAGE_EXECUTE)
+		return false;
+
+	return true;
+}
+
+int __cdecl strcmp_stub(char* a1, char* a2)
+{
+	if (a1 == 0 || a2 == 0 || !check_address_is_r(a1) || !check_address_is_r(a2))
+		return 0;
+
+	return strcmp(a1, a2);
+}
+
+void startMultiplayer_hook()
+{
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ShellExecuteA(NULL, "open", "iw4x://", NULL, NULL, 0);
+
+	Cbuf_AddText(0, "quit\n");
+}
+
 void PatchMW2_159()
 {
 	define159Stuff();
@@ -200,7 +237,8 @@ void PatchMW2_159()
 	*(DWORD*)0x50C110 = (DWORD)"Girls' Frontline: Modern Warfare 2";
 
 	// Yay, hitmarker in sp :D
-	Dvar_RegisterBool("scr_damageFeedback", 0, DVAR_FLAG_SAVED, "Show marker when hitting enemies.");
+	// FORCE IT!
+	Dvar_RegisterInt("scr_damageFeedback", 1, 1, 1, DVAR_FLAG_CHEAT, "Show marker when hitting enemies.");
 
 	// Build os path stuff
 	*(BYTE*)0x6300BF = 0xEB;
@@ -224,6 +262,32 @@ void PatchMW2_159()
 	*(DWORD*)0x43190E = 0x140000 * 4;
 	*(DWORD*)0x431922 = 0x140000 * 4;
 
+	*(DWORD*)0x475327 = (DWORD)startMultiplayer_hook;
+
 	call(0x434634, memcpy_stub, PATCH_CALL);
 	call(0x420858, TryLoadRawfile, PATCH_CALL);
+
+	call(0x401760, strcmp_stub, PATCH_JUMP);
+
+	if (GetFileAttributesA("zone\\chinese\\gfx_patch.ff") != INVALID_FILE_ATTRIBUTES)
+	{
+		static char defaultFont[32];
+		static char hudFont[32];
+		static char objectiveFont[32];
+
+		GetPrivateProfileStringA("CODMOD", "default", "fonts/default", defaultFont, 1000, "./iw4sp.ini");
+		GetPrivateProfileStringA("CODMOD", "hud", "fonts/hud", hudFont, 1000, "./iw4sp.ini");
+		GetPrivateProfileStringA("CODMOD", "objective", "fonts/objective", objectiveFont, 1000, "./iw4sp.ini");
+
+		*(char**)0x620FAD = defaultFont;
+		*(char**)0x620FBE = defaultFont;
+		*(char**)0x620FE0 = defaultFont;
+		*(char**)0x620FF4 = defaultFont;
+		*(char**)0x621005 = defaultFont;
+
+		*(char**)0x621016 = objectiveFont;
+
+		*(char**)0x621027 = hudFont;
+		*(char**)0x621038 = hudFont;
+	}
 }

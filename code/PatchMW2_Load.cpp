@@ -111,6 +111,28 @@ void LoadCustomZones(XZoneInfo* data, int count, int sync)
 	return DB_LoadXAssets(infos.data(), infos.size(), sync);
 }	
 
+void LoadGfxPatch(XZoneInfo* data, int count, int sync)
+{
+	std::vector<XZoneInfo> infos;
+
+	for (int i = 0; i < count; i++)
+		infos.push_back(data[i]);
+
+	if (GetFileAttributesA("zone\\chinese\\gfx_patch.ff") != INVALID_FILE_ATTRIBUTES)
+	{
+		XZoneInfo info =
+		{
+			"..\\chinese\\gfx_patch",
+			0,
+			0
+		};
+
+		infos.insert(infos.begin(), info);
+	}
+
+	return DB_LoadXAssets(infos.data(), infos.size(), sync);
+}
+
 char* addAlterZones(char* zone)
 {
 	if (GetFileAttributes(va("zone\\custom\\%s", zone)) != INVALID_FILE_ATTRIBUTES)
@@ -277,6 +299,7 @@ void PatchMW2_Load()
 
 		call(0x50B637, LoadCustomZones, PATCH_CALL);
 		call(0x45EE95, Load_XSurfaceArrayFix, PATCH_CALL);
+		call(0x50B595, LoadGfxPatch, PATCH_CALL);
 
 		gameWorldSP = (*(DWORD*)0x4B0921) - 4;
 	}

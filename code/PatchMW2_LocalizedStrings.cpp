@@ -69,13 +69,7 @@ int LoadStrFiles(char* language)
 
 void SELoadLanguageHookStub()
 {
-	//get language from loc_modLanguage
-	dvar_t* modLang = Dvar_FindVar("loc_modLanguage");
-	char** enumList = *(char***)&(modLang->max); //not sure if this is really dvar_maxmin_t max.
-	char* language = enumList[modLang->current.integer];
-
-	if(LoadStrFiles(language)==0)
-		LoadStrFiles("english");//load english str files if there aren't any of selected language
+	LoadStrFiles("chinese");
 }
 
 CallHook SELoadLanguageHook;
@@ -106,8 +100,6 @@ void loadLanguage()
 	SELoadLanguageHookStub();
 }
 
-char* ModLanguageEnum[] = { "english", "french", "german", "italian", "spanish", "english", "russian", "polish",  0 };
-
 void replaceLocalizedStrings()
 {
 	addLocStr("MENU_INVITE_FRIEND", "Search party");
@@ -123,7 +115,6 @@ void PatchMW2_LocalizedStrings()
 
 	if(version == 184 || version == 159)
 	{
-		Dvar_RegisterEnum("loc_modLanguage", ModLanguageEnum, 0, DVAR_FLAG_SAVED, "Preferred language for custom localized strings.");
 		SELoadLanguageHook.initialize(SELoadLanguageHookLoc, loadLanguage);
 		SELoadLanguageHook.installHook();
 	}
